@@ -161,7 +161,7 @@ class CallbackQueryHandler(Handler[Update]):
         if isinstance(update, Update) and update.callback_query:
             if self.pattern:
                 if update.callback_query.data:
-                    match = re.match(self.pattern, update.callback_query.data)
+                    match = re.search(self.pattern, update.callback_query.data)
                     if match:
                         return match
             else:
