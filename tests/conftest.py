@@ -18,7 +18,6 @@
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
 import datetime
 import os
-import sys
 import re
 from collections import defaultdict
 from queue import Queue
@@ -31,7 +30,7 @@ from telegram import (Bot, Message, User, Chat, MessageEntity, Update,
                       InlineQuery, CallbackQuery, ShippingQuery, PreCheckoutQuery,
                       ChosenInlineResult)
 from telegram.ext import Dispatcher, JobQueue, Updater, BaseFilter, Defaults
-from telegram.utils.helpers import _UtcOffsetTimezone
+from telegram.error import BadRequest
 from tests.bots import get_bot
 
 GITHUB_ACTION = os.getenv('GITHUB_ACTION', False)
@@ -164,9 +163,8 @@ def class_thumb_file():
 
 
 def pytest_configure(config):
-    if sys.version_info >= (3,):
-        config.addinivalue_line('filterwarnings', 'ignore::ResourceWarning')
-        # TODO: Write so good code that we don't need to ignore ResourceWarnings anymore
+    config.addinivalue_line('filterwarnings', 'ignore::ResourceWarning')
+    # TODO: Write so good code that we don't need to ignore ResourceWarnings anymore
 
 
 def make_bot(bot_info, **kwargs):
@@ -280,4 +278,27 @@ def utc_offset(request):
 
 @pytest.fixture()
 def timezone(utc_offset):
-    return _UtcOffsetTimezone(utc_offset)
+    return datetime.timezone(utc_offset)
+
+
+def expect_bad_request(func, message, reason):
+    """
+    Wrapper for testing bot functions expected to result in an :class:`telegram.error.BadRequest`.
+    Makes it XFAIL, if the specified error message is present.
+
+    Args:
+        func: The callable to be executed.
+        message: The expected message of the bad request error. If another message is present,
+            the error will be reraised.
+        reason: Explanation for the XFAIL.
+
+    Returns:
+        On success, returns the return value of :attr:`func`
+    """
+    try:
+        return func()
+    except BadRequest as e:
+        if message in str(e):
+            pytest.xfail('{}. {}'.format(reason, e))
+        else:
+            raise e

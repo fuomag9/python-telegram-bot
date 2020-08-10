@@ -24,6 +24,7 @@ from flaky import flaky
 
 from telegram import Sticker, TelegramError, PhotoSize, InputFile
 from telegram.utils.helpers import escape_markdown
+from tests.conftest import expect_bad_request
 
 
 @pytest.fixture(scope='function')
@@ -35,8 +36,11 @@ def photo_file():
 
 @pytest.fixture(scope='class')
 def _photo(bot, chat_id):
-    with open('tests/data/telegram.jpg', 'rb') as f:
-        return bot.send_photo(chat_id, photo=f, timeout=50).photo
+    def func():
+        with open('tests/data/telegram.jpg', 'rb') as f:
+            return bot.send_photo(chat_id, photo=f, timeout=50).photo
+
+    return expect_bad_request(func, 'Type of file mismatch', 'Telegram did not accept the file.')
 
 
 @pytest.fixture(scope='class')
@@ -49,7 +53,7 @@ def photo(_photo):
     return _photo[1]
 
 
-class TestPhoto(object):
+class TestPhoto:
     width = 800
     height = 800
     caption = u'<b>PhotoTest</b> - *Caption*'

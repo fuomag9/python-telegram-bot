@@ -96,11 +96,6 @@ def done(update, context):
     return ConversationHandler.END
 
 
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
 def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
@@ -121,22 +116,19 @@ def main():
                                       custom_choice)
                        ],
 
-            TYPING_CHOICE: [MessageHandler(Filters.text,
-                                           regular_choice)
-                            ],
+            TYPING_CHOICE: [
+                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Done$')),
+                               regular_choice)],
 
-            TYPING_REPLY: [MessageHandler(Filters.text,
-                                          received_information),
-                           ],
+            TYPING_REPLY: [
+                MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Done$')),
+                               received_information)],
         },
 
         fallbacks=[MessageHandler(Filters.regex('^Done$'), done)]
     )
 
     dp.add_handler(conv_handler)
-
-    # log all errors
-    dp.add_error_handler(error)
 
     # Start the Bot
     updater.start_polling()

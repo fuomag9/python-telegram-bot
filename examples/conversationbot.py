@@ -108,11 +108,6 @@ def cancel(update, context):
     return ConversationHandler.END
 
 
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
 def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
@@ -135,16 +130,13 @@ def main():
             LOCATION: [MessageHandler(Filters.location, location),
                        CommandHandler('skip', skip_location)],
 
-            BIO: [MessageHandler(Filters.text, bio)]
+            BIO: [MessageHandler(Filters.text & ~Filters.command, bio)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
     )
 
     dp.add_handler(conv_handler)
-
-    # log all errors
-    dp.add_error_handler(error)
 
     # Start the Bot
     updater.start_polling()

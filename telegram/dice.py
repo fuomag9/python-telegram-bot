@@ -23,17 +23,30 @@ from telegram import TelegramObject
 
 class Dice(TelegramObject):
     """
-    This object represents a dice with random value from 1 to 6. (The singular form of "dice" is
-    "die". However, PTB mimics the Telegram API, which uses the term "dice".)
+    This object represents an animated emoji with a random value for currently supported base
+    emoji. (The singular form of "dice" is "die". However, PTB mimics the Telegram API, which uses
+    the term "dice".)
+
+    Note:
+        If :attr:`emoji` is "🎯", a value of 6 currently represents a bullseye, while a value of 1
+        indicates that the dartboard was missed. However, this behaviour is undocumented and might
+        be changed by Telegram.
+
+        If :attr:`emoji` is "🏀", a value of 4 or 5 currently score a basket, while a value of 1 to
+        3 indicates that the basket was missed. However, this behaviour is undocumented and might
+        be changed by Telegram.
 
     Attributes:
         value (:obj:`int`): Value of the dice.
+        emoji (:obj:`str`): Emoji on which the dice throw animation is based.
 
     Args:
-        value (:obj:`int`): Value of the dice, 1-6.
+        value (:obj:`int`): Value of the dice. 1-6 for dice and darts, 1-5 for basketball.
+        emoji (:obj:`str`): Emoji on which the dice throw animation is based.
     """
-    def __init__(self, value, **kwargs):
+    def __init__(self, value, emoji, **kwargs):
         self.value = value
+        self.emoji = emoji
 
     @classmethod
     def de_json(cls, data, bot):
@@ -41,3 +54,13 @@ class Dice(TelegramObject):
             return None
 
         return cls(**data)
+
+    DICE = '🎲'
+    """:obj:`str`: '🎲'"""
+    DARTS = '🎯'
+    """:obj:`str`: '🎯'"""
+    BASKETBALL = '🏀'
+    """:obj:`str`: '🏀'"""
+    ALL_EMOJI = [DICE, DARTS, BASKETBALL]
+    """List[:obj:`str`]: List of all supported base emoji. Currently :attr:`DICE`,
+    :attr:`DARTS` and :attr:`BASKETBALL`."""

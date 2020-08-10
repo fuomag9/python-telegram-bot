@@ -100,14 +100,14 @@ def show_data(update, context):
         text = ''
         if level == SELF:
             for person in user_data[level]:
-                text += '\nName: {0}, Age: {1}'.format(person.get(NAME, '-'), person.get(AGE, '-'))
+                text += '\nName: {}, Age: {}'.format(person.get(NAME, '-'), person.get(AGE, '-'))
         else:
             male, female = _name_switcher(level)
 
             for person in user_data[level]:
                 gender = female if person[GENDER] == FEMALE else male
-                text += '\n{0}: Name: {1}, Age: {2}'.format(gender, person.get(NAME, '-'),
-                                                            person.get(AGE, '-'))
+                text += '\n{}: Name: {}, Age: {}'.format(gender, person.get(NAME, '-'),
+                                                         person.get(AGE, '-'))
         return text
 
     ud = context.user_data
@@ -267,12 +267,6 @@ def stop_nested(update, context):
     return STOPPING
 
 
-# Error handler
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
 def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
@@ -290,7 +284,7 @@ def main():
         states={
             SELECTING_FEATURE: [CallbackQueryHandler(ask_for_input,
                                                      pattern='^(?!' + str(END) + ').*$')],
-            TYPING: [MessageHandler(Filters.text, save_input)],
+            TYPING: [MessageHandler(Filters.text & ~Filters.command, save_input)],
         },
 
         fallbacks=[
@@ -313,8 +307,8 @@ def main():
 
         states={
             SELECTING_LEVEL: [CallbackQueryHandler(select_gender,
-                                                   pattern='^{0}$|^{1}$'.format(str(PARENTS),
-                                                                                str(CHILDREN)))],
+                                                   pattern='^{}$|^{}$'.format(str(PARENTS),
+                                                                              str(CHILDREN)))],
             SELECTING_GENDER: [description_conv]
         },
 
@@ -335,31 +329,29 @@ def main():
     )
 
     # Set up top level ConversationHandler (selecting action)
+    # Because the states of the third level conversation map to the ones of the econd level
+    # conversation, we need to make sure the top level conversation can also handle them
+    selection_handlers = [
+        add_member_conv,
+        CallbackQueryHandler(show_data, pattern='^' + str(SHOWING) + '$'),
+        CallbackQueryHandler(adding_self, pattern='^' + str(ADDING_SELF) + '$'),
+        CallbackQueryHandler(end, pattern='^' + str(END) + '$'),
+    ]
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
 
         states={
             SHOWING: [CallbackQueryHandler(start, pattern='^' + str(END) + '$')],
-            SELECTING_ACTION: [
-                add_member_conv,
-                CallbackQueryHandler(show_data, pattern='^' + str(SHOWING) + '$'),
-                CallbackQueryHandler(adding_self, pattern='^' + str(ADDING_SELF) + '$'),
-                CallbackQueryHandler(end, pattern='^' + str(END) + '$'),
-            ],
+            SELECTING_ACTION: selection_handlers,
+            SELECTING_LEVEL: selection_handlers,
             DESCRIBING_SELF: [description_conv],
+            STOPPING: [CommandHandler('start', start)],
         },
 
         fallbacks=[CommandHandler('stop', stop)],
     )
-    # Because the states of the third level conversation map to the ones of the
-    # second level conversation, we need to be a bit hacky about that:
-    conv_handler.states[SELECTING_LEVEL] = conv_handler.states[SELECTING_ACTION]
-    conv_handler.states[STOPPING] = conv_handler.entry_points
 
     dp.add_handler(conv_handler)
-
-    # log all errors
-    dp.add_error_handler(error)
 
     # Start the Bot
     updater.start_polling()

@@ -19,19 +19,18 @@
 """This module contains helper functions."""
 
 import datetime as dtm  # dtm = "DateTime Module"
+import re
+import signal
 import time
-
 from collections import defaultdict
+from html import escape
 from numbers import Number
 
 try:
     import ujson as json
 except ImportError:
     import json
-from html import escape
 
-import re
-import signal
 
 # From https://stackoverflow.com/questions/2549939/get-signal-names-from-numbers-in-python
 _signames = {v: k
@@ -58,63 +57,32 @@ def escape_markdown(text, version=1, entity_type=None):
             ``version=2``, will be ignored else.
     """
     if int(version) == 1:
-        escape_chars = '\*_`\['
+        escape_chars = r'_*`['
     elif int(version) == 2:
         if entity_type == 'pre' or entity_type == 'code':
-            escape_chars = '`\\\\'
+            escape_chars = r'\`'
         elif entity_type == 'text_link':
-            escape_chars = ')\\\\'
+            escape_chars = r'\)'
         else:
-            escape_chars = '_*\[\]()~`>\#\+\-=|{}\.!'
+            escape_chars = r'_*[]()~`>#+-=|{}.!'
     else:
-        raise ValueError('Markdown version musst be either 1 or 2!')
+        raise ValueError('Markdown version must be either 1 or 2!')
 
-    return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
+    return re.sub('([{}])'.format(re.escape(escape_chars)), r'\\\1', text)
 
 
 # -------- date/time related helpers --------
 # TODO: add generic specification of UTC for naive datetimes to docs
 
-if hasattr(dtm, 'timezone'):
-    # Python 3.3+
-    def _datetime_to_float_timestamp(dt_obj):
-        if dt_obj.tzinfo is None:
-            dt_obj = dt_obj.replace(tzinfo=_UTC)
-        return dt_obj.timestamp()
+def _datetime_to_float_timestamp(dt_obj):
+    """
+    Converts a datetime object to a float timestamp (with sub-second precision).
+    If the datetime object is timezone-naive, it is assumed to be in UTC.
+    """
 
-    _UtcOffsetTimezone = dtm.timezone
-    _UTC = dtm.timezone.utc
-else:
-    # Python < 3.3 (incl 2.7)
-
-    # hardcoded timezone class (`datetime.timezone` isn't available in py2)
-    class _UtcOffsetTimezone(dtm.tzinfo):
-        def __init__(self, offset):
-            self.offset = offset
-
-        def tzname(self, dt):
-            return 'UTC +{}'.format(self.offset)
-
-        def utcoffset(self, dt):
-            return self.offset
-
-        def dst(self, dt):
-            return dtm.timedelta(0)
-
-    _UTC = _UtcOffsetTimezone(dtm.timedelta(0))
-    __EPOCH_DT = dtm.datetime.fromtimestamp(0, tz=_UTC)
-    __NAIVE_EPOCH_DT = __EPOCH_DT.replace(tzinfo=None)
-
-    # _datetime_to_float_timestamp
-    # Not using future.backports.datetime here as datetime value might be an input from the user,
-    # making every isinstace() call more delicate. So we just use our own compat layer.
-    def _datetime_to_float_timestamp(dt_obj):
-        epoch_dt = __EPOCH_DT if dt_obj.tzinfo is not None else __NAIVE_EPOCH_DT
-        return (dt_obj - epoch_dt).total_seconds()
-
-_datetime_to_float_timestamp.__doc__ = \
-    """Converts a datetime object to a float timestamp (with sub-second precision).
-If the datetime object is timezone-naive, it is assumed to be in UTC."""
+    if dt_obj.tzinfo is None:
+        dt_obj = dt_obj.replace(tzinfo=dtm.timezone.utc)
+    return dt_obj.timestamp()
 
 
 def to_float_timestamp(t, reference_timestamp=None):
@@ -196,22 +164,27 @@ def to_timestamp(dt_obj, reference_timestamp=None):
     return int(to_float_timestamp(dt_obj, reference_timestamp)) if dt_obj is not None else None
 
 
-def from_timestamp(unixtime):
+def from_timestamp(unixtime, tzinfo=dtm.timezone.utc):
     """
-    Converts an (integer) unix timestamp to a naive datetime object in UTC.
+    Converts an (integer) unix timestamp to a timezone aware datetime object.
     ``None`` s are left alone (i.e. ``from_timestamp(None)`` is ``None``).
 
     Args:
         unixtime (int): integer POSIX timestamp
+        tzinfo (:obj:`datetime.tzinfo`, optional): The timezone, the timestamp is to be converted
+            to. Defaults to UTC.
 
     Returns:
-        equivalent :obj:`datetime.datetime` value in naive UTC if ``timestamp`` is not
+        timezone aware equivalent :obj:`datetime.datetime` value if ``timestamp`` is not
         ``None``; else ``None``
     """
     if unixtime is None:
         return None
 
-    return dtm.datetime.utcfromtimestamp(unixtime)
+    if tzinfo is not None:
+        return dtm.datetime.fromtimestamp(unixtime, tz=tzinfo)
+    else:
+        return dtm.datetime.utcfromtimestamp(unixtime)
 
 # -------- end --------
 
@@ -317,7 +290,7 @@ def create_deep_linked_url(bot_username, payload=None, group=False):
     else:
         key = 'start'
 
-    return '{0}?{1}={2}'.format(
+    return '{}?{}={}'.format(
         base_url,
         key,
         payload

@@ -2,6 +2,72 @@
 Changelog
 =========
 
+Version 12.8
+============
+*Released 2020-06-22*
+
+**Major Changes:**
+
+- Remove Python 2 support (`#1715`_)
+- Bot API 4.9 support (`#1980`_)
+- IDs/Usernames of ``Filters.user`` and ``Filters.chat`` can now be updated (`#1757`_)
+
+**Minor changes, CI improvements, doc fixes or bug fixes:**
+
+- Update contribution guide and stale bot (`#1937`_)
+- Remove ``NullHandlers`` (`#1913`_)
+- Improve and expand examples (`#1943`_, `#1995`_, `#1983`_, `#1997`_)
+- Doc fixes (`#1940`_, `#1962`_)
+- Add ``User.send_poll()`` shortcut (`#1968`_)
+- Ignore private attributes en ``TelegramObject.to_dict()`` (`#1989`_)
+- Stabilize CI (`#2000`_)
+
+.. _`#1937`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1937
+.. _`#1913`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1913
+.. _`#1943`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1943
+.. _`#1757`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1757
+.. _`#1940`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1940
+.. _`#1962`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1962
+.. _`#1968`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1968
+.. _`#1989`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1989
+.. _`#1995`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1995
+.. _`#1983`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1983
+.. _`#1715`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1715
+.. _`#2000`: https://github.com/python-telegram-bot/python-telegram-bot/pull/2000
+.. _`#1997`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1997
+.. _`#1980`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1980
+
+Version 12.7
+============
+*Released 2020-05-02*
+
+**Major Changes:**
+
+- Bot API 4.8 support. **Note:** The ``Dice`` object now has a second positional argument ``emoji``. This is relevant, if you instantiate ``Dice`` objects manually. (`#1917`_)
+
+**New Features:**
+
+- New method ``run_mothly`` for the ``JobQueue`` (`#1705`_)
+- ``Job.next_t`` now gives the datetime of the jobs next execution (`#1685`_)
+
+**Minor changes, CI improvements, doc fixes or bug fixes:**
+
+- Added ``tzinfo`` argument to ``helpers.from_timestamp`` (`#1621`_)
+- Stabalize CI (`#1919`_, `#1931`_)
+- Use ABCs ``@abstractmethod`` instead of raising ``NotImplementedError`` for ``Handler``, ``BasePersistence`` and ``BaseFilter`` (`#1905`_)
+- Doc fixes (`#1914`_, `#1902`_, `#1910`_)
+
+.. _`#1902`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1902
+.. _`#1685`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1685
+.. _`#1910`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1910
+.. _`#1914`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1914
+.. _`#1931`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1931
+.. _`#1905`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1905
+.. _`#1919`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1919
+.. _`#1621`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1621
+.. _`#1705`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1705
+.. _`#1917`: https://github.com/python-telegram-bot/python-telegram-bot/pull/1917
+
 Version 12.6.1
 ==============
 *Released 2020-04-11*

@@ -93,7 +93,7 @@ make the development of bots easy and straightforward. These classes are contain
 Telegram API support
 ====================
 
-All types and methods of the Telegram Bot API **4.7** are supported.
+All types and methods of the Telegram Bot API **4.8** are supported.
 
 ==========
 Installing
@@ -139,7 +139,7 @@ Learning by example
 
 We believe that the best way to learn this package is by example. Here
 are some examples for you to review. Even if it is not your approach for learning, please take a
-look at ``echobot2``, it is the de facto base for most of the bots out there. Best of all,
+look at ``echobot.py``, it is the de facto base for most of the bots out there. Best of all,
 the code for these examples are released to the public domain, so you can start by grabbing the
 code and building on top of it.
 

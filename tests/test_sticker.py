@@ -22,9 +22,9 @@ from time import sleep
 
 import pytest
 from flaky import flaky
-from future.utils import PY2
 
 from telegram import Sticker, PhotoSize, TelegramError, StickerSet, Audio, MaskPosition
+from telegram.error import BadRequest
 
 
 @pytest.fixture(scope='function')
@@ -53,7 +53,7 @@ def animated_sticker(bot, chat_id):
         return bot.send_sticker(chat_id, sticker=f, timeout=50).sticker
 
 
-class TestSticker(object):
+class TestSticker:
     # sticker_file_url = 'https://python-telegram-bot.org/static/testfiles/telegram.webp'
     # Serving sticker from gh since our server sends wrong content_type
     sticker_file_url = ('https://github.com/python-telegram-bot/python-telegram-bot/blob/master'
@@ -144,10 +144,7 @@ class TestSticker(object):
         server_file_id = 'CAADAQADHAADyIsGAAFZfq1bphjqlgI'
         message = bot.send_sticker(chat_id=chat_id, sticker=server_file_id)
         sticker = message.sticker
-        if PY2:
-            assert sticker.emoji == self.emoji.decode('utf-8')
-        else:
-            assert sticker.emoji == self.emoji
+        assert sticker.emoji == self.emoji
 
     @flaky(3, 1)
     @pytest.mark.timeout(10)
@@ -260,7 +257,11 @@ class TestSticker(object):
 def sticker_set(bot):
     ss = bot.get_sticker_set('test_by_{}'.format(bot.username))
     if len(ss.stickers) > 100:
-        raise Exception('stickerset is growing too large.')
+        try:
+            for i in range(1, 50):
+                bot.delete_sticker_from_set(ss.stickers[-i].file_id)
+        except BadRequest:
+            raise Exception('stickerset is growing too large.')
     return ss
 
 
@@ -268,7 +269,11 @@ def sticker_set(bot):
 def animated_sticker_set(bot):
     ss = bot.get_sticker_set('animated_test_by_{}'.format(bot.username))
     if len(ss.stickers) > 100:
-        raise Exception('stickerset is growing too large.')
+        try:
+            for i in range(1, 50):
+                bot.delete_sticker_from_set(ss.stickers[-i].file_id)
+        except BadRequest:
+            raise Exception('stickerset is growing too large.')
     return ss
 
 
@@ -279,7 +284,7 @@ def sticker_set_thumb_file():
     f.close()
 
 
-class TestStickerSet(object):
+class TestStickerSet:
     title = 'Test stickers'
     is_animated = True
     contains_masks = False
@@ -416,7 +421,7 @@ def mask_position():
                         TestMaskPosition.scale)
 
 
-class TestMaskPosition(object):
+class TestMaskPosition:
     point = MaskPosition.EYES
     x_shift = -1
     y_shift = 1

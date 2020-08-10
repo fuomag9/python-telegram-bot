@@ -51,7 +51,33 @@ def change_directory(tmp_path):
 
 @pytest.fixture(scope="function")
 def base_persistence():
-    return BasePersistence(store_chat_data=True, store_user_data=True, store_bot_data=True)
+    class OwnPersistence(BasePersistence):
+
+        def get_bot_data(self):
+            raise NotImplementedError
+
+        def get_chat_data(self):
+            raise NotImplementedError
+
+        def get_user_data(self):
+            raise NotImplementedError
+
+        def get_conversations(self, name):
+            raise NotImplementedError
+
+        def update_bot_data(self, data):
+            raise NotImplementedError
+
+        def update_chat_data(self, chat_id, data):
+            raise NotImplementedError
+
+        def update_conversation(self, name, key, new_state):
+            raise NotImplementedError
+
+        def update_user_data(self, user_id, data):
+            raise NotImplementedError
+
+    return OwnPersistence(store_chat_data=True, store_user_data=True, store_bot_data=True)
 
 
 @pytest.fixture(scope="function")
@@ -95,27 +121,18 @@ def job_queue(bot):
     jq.stop()
 
 
-class TestBasePersistence(object):
+class TestBasePersistence:
 
     def test_creation(self, base_persistence):
         assert base_persistence.store_chat_data
         assert base_persistence.store_user_data
-        with pytest.raises(NotImplementedError):
-            base_persistence.get_bot_data()
-        with pytest.raises(NotImplementedError):
-            base_persistence.get_chat_data()
-        with pytest.raises(NotImplementedError):
-            base_persistence.get_user_data()
-        with pytest.raises(NotImplementedError):
-            base_persistence.get_conversations("test")
-        with pytest.raises(NotImplementedError):
-            base_persistence.update_bot_data(None)
-        with pytest.raises(NotImplementedError):
-            base_persistence.update_chat_data(None, None)
-        with pytest.raises(NotImplementedError):
-            base_persistence.update_user_data(None, None)
-        with pytest.raises(NotImplementedError):
-            base_persistence.update_conversation(None, None, None)
+        assert base_persistence.store_bot_data
+
+    def test_abstract_methods(self):
+        with pytest.raises(TypeError, match=('get_bot_data, get_chat_data, get_conversations, '
+                                             'get_user_data, update_bot_data, update_chat_data, '
+                                             'update_conversation, update_user_data')):
+            BasePersistence()
 
     def test_implementation(self, updater, base_persistence):
         dp = updater.dispatcher
@@ -127,8 +144,6 @@ class TestBasePersistence(object):
         with pytest.raises(ValueError, match="if dispatcher has no persistence"):
             dp.add_handler(ConversationHandler([], {}, [], persistent=True, name="My Handler"))
         dp.persistence = base_persistence
-        with pytest.raises(NotImplementedError):
-            dp.add_handler(ConversationHandler([], {}, [], persistent=True, name="My Handler"))
 
     def test_dispatcher_integration_init(self, bot, base_persistence, chat_data, user_data,
                                          bot_data):
@@ -272,7 +287,7 @@ class TestBasePersistence(object):
 
         dp.persistence = base_persistence
 
-        class MyUpdate(object):
+        class MyUpdate:
             pass
 
         dp.add_handler(TypeHandler(MyUpdate, lambda *_: None))
@@ -370,7 +385,7 @@ def update(bot):
     return Update(0, message=message)
 
 
-class TestPickelPersistence(object):
+class TestPickelPersistence:
     def test_no_files_present_multi_file(self, pickle_persistence):
         assert pickle_persistence.get_user_data() == defaultdict(dict)
         assert pickle_persistence.get_user_data() == defaultdict(dict)
@@ -969,7 +984,7 @@ def conversations_json(conversations):
               {"[123, 321]": 1, "[890, 890]": 2}}"""
 
 
-class TestDictPersistence(object):
+class TestDictPersistence:
     def test_no_json_given(self):
         dict_persistence = DictPersistence()
         assert dict_persistence.get_user_data() == defaultdict(dict)
