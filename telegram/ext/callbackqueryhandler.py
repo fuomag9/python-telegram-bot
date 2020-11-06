@@ -88,7 +88,7 @@ class CallbackQueryHandler(Handler):
             :class:`telegram.ext.JobQueue` instance created by the :class:`telegram.ext.Updater`
             which can be used to schedule new jobs. Default is :obj:`False`.
             DEPRECATED: Please switch to context based callbacks.
-        pattern (:obj:`str` | `Pattern`, optional): Regex pattern. If not :obj:`None`, ``re.match``
+        pattern (:obj:`str` | `Pattern`, optional): Regex pattern. If not :obj:`None`, ``re.search``
             is used on :attr:`telegram.CallbackQuery.data` to determine if an update should be
             handled by this handler.
         pass_groups (:obj:`bool`, optional): If the callback should be passed the result of
@@ -148,7 +148,7 @@ class CallbackQueryHandler(Handler):
         if isinstance(update, Update) and update.callback_query:
             if self.pattern:
                 if update.callback_query.data:
-                    match = re.match(self.pattern, update.callback_query.data)
+                    match = re.search(self.pattern, update.callback_query.data)
                     if match:
                         return match
             else:
