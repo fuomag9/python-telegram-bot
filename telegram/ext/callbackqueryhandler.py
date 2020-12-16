@@ -90,7 +90,7 @@ class CallbackQueryHandler(Handler[Update, CCT]):
             DEPRECATED: Please switch to context based callbacks.
         pattern (:obj:`str` | `Pattern` | :obj:`callable` | :obj:`type`, optional):
             Pattern to test :attr:`telegram.CallbackQuery.data` against. If a string or a regex
-            pattern is passed, :meth:`re.match` is used on :attr:`telegram.CallbackQuery.data` to
+            pattern is passed, :meth:`re.search` is used on :attr:`telegram.CallbackQuery.data` to
             determine if an update should be handled by this handler. If your bot allows arbitrary
             objects as ``callback_data``, non-strings will be accepted. To filter arbitrary
             objects you may pass
@@ -107,11 +107,11 @@ class CallbackQueryHandler(Handler[Update, CCT]):
             .. versionchanged:: 13.6
                Added support for arbitrary callback data.
         pass_groups (:obj:`bool`, optional): If the callback should be passed the result of
-            ``re.match(pattern, data).groups()`` as a keyword argument called ``groups``.
+            ``re.search(pattern, data).groups()`` as a keyword argument called ``groups``.
             Default is :obj:`False`
             DEPRECATED: Please switch to context based callbacks.
         pass_groupdict (:obj:`bool`, optional): If the callback should be passed the result of
-            ``re.match(pattern, data).groupdict()`` as a keyword argument called ``groupdict``.
+            ``re.search(pattern, data).groupdict()`` as a keyword argument called ``groupdict``.
             Default is :obj:`False`
             DEPRECATED: Please switch to context based callbacks.
         pass_user_data (:obj:`bool`, optional): If set to :obj:`True`, a keyword argument called
